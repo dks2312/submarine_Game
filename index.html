@@ -18,6 +18,7 @@
 <body>
     <canvas id="canvas" width="800" height="600">
     </canvas>
+
     <script type="text/javascript">
         var canvas;
         var ctx;
@@ -25,10 +26,54 @@
         var bufferCtx;
         var threadSpeed = 16;
 
+        class obj{
+            x;
+            y;
+            img;
+            width;
+            height;
+            vx;// velocity
+            vy;
+
+            obj(img, width, height, x, y, vx, vy){
+                this.img = new Image();
+                this.img.src = img;
+                this.width = width;
+                this.height = height;
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+            }
+
+            draw(bufferCtx){
+                bufferCtx.drawImage(this.img, this.x -(this.width / 2), this.y -(this.height / 2), this.width, this.height);
+            }
+        }
+
+        class enemy extends obj{
+            enemy(img, width, height, x, y, vx, vy){
+                super(img, width, height, x, y, vx, vy);
+            }
+            
+            moveXY(){
+                x += vx;
+                y += vy;
+            }
+
+            setVXY(vx, vy){
+                this.vx += vx;
+                this.vy += vy;
+            }
+        }
+
         //잠수함
         var submarine;
-        var sx, sy, sw = 50, sh = 40;
-
+        var speed = 2;
+        var breakPower = 5;
+        var moveX = 0, moveY = 0;
+        var sx, sy, sw = 60, sh = 30;
+        
         //배경이미지
         var background;
         //장애물
@@ -86,39 +131,9 @@
         }
         //주기적으로 반복되는 루틴
         function update() {
-            if (keyPressed[38]) {
-                sy -= 3;
-                angle = 0;
-            }
-            if (keyPressed[40]) {
-                sy += 3;
-                angle = 180;
-            }
-            if (keyPressed[37]) {
-                sx -= 3;
-                angle = 270;
-            }
-            if (keyPressed[39]) {
-                sx += 3;
-                angle = 90;
-            }
-            if (keyPressed[32] == true) {
-                document.location.reload();
-                startGame();
-            }
-            // 대각선 이동시의 각도 계산
-            if (keyPressed[38] && keyPressed[39]) {
-                angle = 45;
-            }
-            if (keyPressed[39] && keyPressed[40]) {
-                angle = 135;
-            }
-            if (keyPressed[40] && keyPressed[37]) {
-                angle = 225;
-            }
-            if (keyPressed[37] && keyPressed[38]) {
-                angle = 315;
-            }
+            // 플레이어 이동 키 감지
+            movePlayer();
+
             if ((keyPressed[13] == true) && !STATE_START) //enter
             {
                 startGame();
@@ -132,6 +147,39 @@
                 //캔버스에 그리기
                 drawAll();
             }
+        }
+
+        function movePlayer(){ 
+            if (keyPressed[38]) {
+                moveY -= speed;
+            }
+            if (keyPressed[40]) {
+                moveY += speed;
+            }
+            if (keyPressed[37]) {
+                moveX -= speed;
+            }
+            if (keyPressed[39]) {
+                moveX += speed;
+            }
+            if (keyPressed[32] == true) {
+                document.location.reload();
+                startGame();
+            }
+            // 아무것도 누르지 않은 상태일 때 속도를 낮춤
+            if(!(keyPressed[38] || keyPressed[40] || keyPressed[37] || keyPressed[39])){
+                if(Math.abs(moveX) < breakPower) moveX = 0;
+                if(Math.abs(moveY) < breakPower) moveY = 0;
+
+                if(moveX > 0) moveX -= breakPower;
+                else if(moveX < 0) moveX += breakPower;
+
+                if(moveY > 0) moveY -+ breakPower;
+                else if(moveY < 0) moveY += breakPower;
+            }
+
+            sx += moveX;
+            sy += moveY;
         }
 
         function clearAll(){
@@ -171,7 +219,7 @@
             sx = canvas.width / 2 - 18;
             sy = canvas.height / 2 - 18;
             sw = 60;
-            sh = 35;
+            sh = 30;
 
             //장애물 생성
             createObstacle();
@@ -199,7 +247,7 @@
         }
         function setImage() {
             submarine = new Image();
-            submarine.src = "image/jamsuham.png";
+            submarine.src = "image/player.png";
             background = new Image();
             background.src = "image/sea.png";
         }
@@ -253,7 +301,7 @@
         }
         //잠수함 유닛 출력
         function drawPlayer() {
-            bufferCtx.drawImage(submarine, sx - sw / 2, sy - sh / 2);
+            bufferCtx.drawImage(submarine, sx - sw / 2, sy - sh / 2, sw,  sh);
         }
         //게임 배경 이미지 출력
         function drawBk() {
