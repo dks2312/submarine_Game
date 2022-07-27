@@ -16,7 +16,7 @@
 </head>
 
 <body>
-    <canvas id="canvas" width="800" height="600">
+    <canvas id="canvas" width="1900" height="1500">
     </canvas>
 
     <script type="text/javascript">
@@ -27,58 +27,95 @@
         var threadSpeed = 16;
 
         class obj{
-            x;
-            y;
-            img;
-            width;
-            height;
-            vx;// velocity
-            vy;
-
-            obj(img, width, height, x, y, vx, vy){
+            constructor(img, width, height){
                 this.img = new Image();
                 this.img.src = img;
                 this.width = width;
                 this.height = height;
-                this.x = x;
-                this.y = y;
-                this.vx = vx;
-                this.vy = vy;
+                this.x = 0;
+                this.y = 0;
             }
 
-            draw(bufferCtx){
-                bufferCtx.drawImage(this.img, this.x -(this.width / 2), this.y -(this.height / 2), this.width, this.height);
+            drawObj() {
+                bufferCtx.drawImage(this.img, this.x - this.width / 2, this.y - this.height / 2, this.width,  this.height);
             }
         }
 
-        class enemy extends obj{
-            enemy(img, width, height, x, y, vx, vy){
-                super(img, width, height, x, y, vx, vy);
-            }
-            
-            moveXY(){
-                x += vx;
-                y += vy;
+        class lifeObj extends obj{
+            constructor(img, width, height){
+                super(img, width, height);
+                this.vx = 0;
+                this.vy = 0;
+                this.maxSpeed = 5;
+                this.speed = 1;
+                this.level = 0;
             }
 
-            setVXY(vx, vy){
+            uqdateXY(){
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            downSpeed(){
+                if(this.vx > 0)  this.vx -= 1;
+                else if(this.vx < 0)  this.vx += 1;
+
+                if(this.vy > 0)  this.vy -= 1;
+                else if(this.vy < 0)  this.vy += 1;
+            }
+
+            moveXY(vx, vy){
                 this.vx += vx;
                 this.vy += vy;
+
+                if(this.vx > this.maxSpeed)  this.vx = this.maxSpeed;
+                else if(this.vx < -this.maxSpeed)  this.vx = -this.maxSpeed;
+                
+                if(this.vy > this.maxSpeed)  this.vy = this.maxSpeed;
+                else if(this.vy < -this.maxSpeed)  this.vy = -this.maxSpeed;
+            }
+
+            setMaxSpeed(maxSpeed){
+                this.maxSpeed = maxSpeed;
+            }
+
+            setSpeed(speed){
+                this.speed = speed;
+            }
+
+            getVX(){
+                return this.vx;
+            }
+
+            getVY(){
+                return this.vy;
+            }
+
+            setLevel(level){
+                this.level = level;
             }
         }
-
-        //잠수함
-        var submarine;
-        var speed = 2;
-        var breakPower = 5;
-        var moveX = 0, moveY = 0;
-        var sx, sy, sw = 60, sh = 30;
-        
         //배경이미지
         var background;
+
+        //잠수함
+        var submarine = new lifeObj(
+            "image/player.png", 60, 30
+        );
+        submarine.setMaxSpeed(10);
+        submarine.setSpeed(2);
+        submarine.setLevel(0);
+
         //장애물
-        var enemy = new Array();
-        var enemyColor = ["red", "blue", "white"];
+        var enemyCount = 10;
+        const enemyFool = new Set();
+        const enemyType = [
+            { img:"image/fish_1.png", w: 60, h: 30, lv: 100, nLv: 0, ms: 20},
+            { img:"image/fish_2.png", w: 80, h: 40, lv: 1, nLv: 1, ms: 15},
+            { img:"image/fish_3.png", w: 120, h: 60, lv: 2, nLv: 2, ms: 15},
+            { img:"image/fish_4.png", w: 180, h: 90, lv: 2, nLv: 3, ms: 10},
+            { img:"image/fish_5.png", w: 300, h: 150, lv: 3, nLv: 4, ms: 10},
+            { img:"image/fish_6.png", w: 540, h: 270, lv: 10, nLv: 5, ms: 5}];
         var ellapse = 10;
 
         //타이머 인스턴스
@@ -134,6 +171,10 @@
             // 플레이어 이동 키 감지
             movePlayer();
 
+            if (keyPressed[32] == true) {
+                document.location.reload();
+                startGame();
+            }
             if ((keyPressed[13] == true) && !STATE_START) //enter
             {
                 startGame();
@@ -150,36 +191,29 @@
         }
 
         function movePlayer(){ 
-            if (keyPressed[38]) {
-                moveY -= speed;
-            }
-            if (keyPressed[40]) {
-                moveY += speed;
-            }
-            if (keyPressed[37]) {
-                moveX -= speed;
-            }
-            if (keyPressed[39]) {
-                moveX += speed;
-            }
-            if (keyPressed[32] == true) {
-                document.location.reload();
-                startGame();
-            }
-            // 아무것도 누르지 않은 상태일 때 속도를 낮춤
-            if(!(keyPressed[38] || keyPressed[40] || keyPressed[37] || keyPressed[39])){
-                if(Math.abs(moveX) < breakPower) moveX = 0;
-                if(Math.abs(moveY) < breakPower) moveY = 0;
 
-                if(moveX > 0) moveX -= breakPower;
-                else if(moveX < 0) moveX += breakPower;
+            if (keyPressed[38]) submarine.moveXY(0, -submarine.speed);
+            if (keyPressed[40]) submarine.moveXY(0, submarine.speed);
+            if (keyPressed[37]) submarine.moveXY(-submarine.speed, 0);
+            if (keyPressed[39]) submarine.moveXY(submarine.speed, 0);
 
-                if(moveY > 0) moveY -+ breakPower;
-                else if(moveY < 0) moveY += breakPower;
-            }
+            // 플레이어 감속
+            submarine.downSpeed();
+            // 플레이어 위치 업데이트
+            submarine.uqdateXY();
+            // 맵과 충돌이 일어났는지 체크
+            crashMap()
+        }
 
-            sx += moveX;
-            sy += moveY;
+        function crashMap(){
+            var mx = canvas.width;
+            var my = canvas.height;
+
+            if (mx < submarine.x ) submarine.x = mx;
+            if(submarine.x < 0) submarine.x = 0;
+            if(my < submarine.y) submarine.y = my;
+            if(submarine.y < 0) submarine.y = 0;
+            
         }
 
         function clearAll(){
@@ -189,37 +223,58 @@
 
         function moveObstacle(ellapse) {
             //장애물의 이동
-            for (var i = 0; i < 60; i++) {
-                var mx = enemy[i].vx * ellapse / 1000;
-                var my = enemy[i].vy * ellapse / 1000;
-                enemy[i].x += mx;
-                enemy[i].y += my;
-                if (enemy[i].x > canvas.width) enemy[i].x = 0;
-                if (enemy[i].x < 0) enemy[i].x = canvas.width;
-                if (enemy[i].y > canvas.height) enemy[i].y = 0;
-                if (enemy[i].y < 0) enemy[i].y = canvas.height;
-
+            enemyFool.forEach(function (enemy) {
+                // 장애물 위치 업데이트
+                enemy.uqdateXY();
+                // 장애물 사망
+                deleteObstacle(enemy);
+                // 장애물 생성
+                createObstacle();
                 //충돌 검사
-                crashObstacle(i);
+                crashObstacle(enemy);
+            });
+        }
+        function deleteObstacle(enemy){
+            if ((enemy.x > canvas.width + enemy.width) || (enemy.x < -enemy.width)
+            || (enemy.y > canvas.height + enemy.height) || (enemy.y < -enemy.height)) {
+                enemyFool.delete(enemy);
             }
         }
-        function crashObstacle(index) {
-            var mx = enemy[index].x;
-            var my = enemy[index].y;
+        
+        function crashObstacle(enemy) {
+            var mx = enemy.x;
+            var my = enemy.y;
 
-            if (mx > sx - sw / 2 && mx < sx + sw / 2 && my > sy - sh / 2 && my < sy + sh / 2) {
-                STATE_GAMEOVER = true;
+            if (mx > submarine.x  - submarine.width / 2 
+            && mx < submarine.x + submarine.width / 2
+            && my > submarine.y - submarine.height / 2 
+            && my < submarine.y + submarine.height / 2) {
+                if(submarine.height >= enemy.height - 5){ // 먹었을 때
+
+                    var sizeUp = enemyType[enemy.level];
+                    submarine.width += sizeUp.lv * 2;
+                    submarine.height += sizeUp.lv;
+
+                    if(submarine.level < enemy.level-1){
+                        submarine.level =  enemy.level-1;
+                    }
+
+                    enemyFool.delete(enemy);
+                }
+                else{
+                    STATE_GAMEOVER = true;
+                }
             }
         }
+
+
 
         function startGame() {
             //게임 시작 상태
             STATE_START = true;
             //캐릭터의 초기 위치
-            sx = canvas.width / 2 - 18;
-            sy = canvas.height / 2 - 18;
-            sw = 60;
-            sh = 30;
+            submarine.x = canvas.width / 2 - 18;
+            submarine.y = canvas.height / 2 - 18;
 
             //장애물 생성
             createObstacle();
@@ -229,16 +284,29 @@
             oldTime = getTime();
         }
 
+        // 장애물 생성
         function createObstacle() {
-            enemy.length = 0;
-            for (var i = 0; i < 60; i++) {
-                enemy.push({
-                    x: Math.random() * canvas.width,
-                    y: (i < 60 / 2 ? 20 : canvas.height - 20),
-                    vx: Math.random() * 200 - 100,
-                    vy: Math.random() * 200 - 100,
-                    color: Math.floor(Math.random() * 5)
-                });
+            var diff = enemyCount - enemyFool.size + (5 * submarine.level);
+            
+            for (var i = 0; i < diff; i++) {
+                var isLR;
+                if(Math.floor(Math.random() * 2) == 0) isLR = true;
+                else isLR = false;
+
+                var type = Math.floor(Math.random() * (4 + submarine.level) + submarine.level - 1);
+                if(enemyType.length < type) type = enemyType.length-1;
+                if(0 > type) type = 0;
+                var enemyTmp = new lifeObj(enemyType[type].img, enemyType[type].w, enemyType[type].h);
+
+                enemyTmp.setLevel(enemyType[type].nLv);
+                enemyTmp.x = (isLR ? -enemyTmp.width : canvas.width + enemyTmp.width);
+                enemyTmp.y = Math.random() * canvas.height;
+                enemyTmp.setMaxSpeed(enemyType[type].ms);
+                enemyTmp.setSpeed(Math.random() * 10 + 1);
+                enemyTmp.moveXY((isLR ? enemyTmp.speed : -enemyTmp.speed), Math.random() * 3 - 1)
+                enemyTmp.drawObj();
+                
+                enemyFool.add(enemyTmp);
             }
         }
 
@@ -246,8 +314,6 @@
             STATE_START = false;
         }
         function setImage() {
-            submarine = new Image();
-            submarine.src = "image/player.png";
             background = new Image();
             background.src = "image/sea.png";
         }
@@ -280,10 +346,11 @@
                 //배경 이미지 출력
                 drawBk();
                 //잠수함 출력
-                drawPlayer();
-                ctx.drawImage(canvasBuffer, 0, 0);
+                submarine.drawObj();
                 //장애물 출력
                 drawObstacle();
+                // 화면 갱신
+                ctx.drawImage(canvasBuffer, 0, 0);
                 //경과 시간 출력
                 totalTime = (getTime() - startTime);
                 drawText(ctx, totalTime, canvas.width - 10, 10, "20px arial", "yellow", "right", "top");
@@ -291,21 +358,18 @@
         }
         //장애물 출력
         function drawObstacle() {
-            for (var i = 0; i < 60; i++) {
-                ctx.beginPath();
-                ctx.arc(enemy[i].x, enemy[i].y, 5, 0, 2 * Math.PI);
-                ctx.fillStyle = enemyColor[enemy[i].color];
-                ctx.closePath();
-                ctx.fill();
-            }
+            enemyFool.forEach(function(enemy) {
+                enemy.drawObj();
+            });
         }
-        //잠수함 유닛 출력
-        function drawPlayer() {
-            bufferCtx.drawImage(submarine, sx - sw / 2, sy - sh / 2, sw,  sh);
-        }
+
         //게임 배경 이미지 출력
         function drawBk() {
             bufferCtx.drawImage(background, 0, 0);
+        }
+
+        function a(val){
+            console.log(val);
         }
     </script>
 </body>
