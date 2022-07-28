@@ -16,7 +16,7 @@
 </head>
 
 <body>
-    <canvas id="canvas" width="1900" height="1500">
+    <canvas id="canvas" width="1900" height="900px">
     </canvas>
 
     <script type="text/javascript">
@@ -26,10 +26,13 @@
         var bufferCtx;
         var threadSpeed = 16;
 
+
         class obj{
-            constructor(img, width, height){
-                this.img = new Image();
-                this.img.src = img;
+            constructor(imgL, imgR, width, height){
+                this.imgL = new Image();
+                this.imgL.src = imgL;
+                this.imgR = new Image();
+                this.imgR.src = imgR;
                 this.width = width;
                 this.height = height;
                 this.x = 0;
@@ -37,17 +40,18 @@
             }
 
             drawObj() {
-                bufferCtx.drawImage(this.img, this.x - this.width / 2, this.y - this.height / 2, this.width,  this.height);
+                bufferCtx.drawImage(this.imgL, this.x - this.width*1.1 / 2 , this.y - this.height / 2 , this.width,  this.height);   
             }
         }
 
         class lifeObj extends obj{
-            constructor(img, width, height){
-                super(img, width, height);
+            constructor(imgL, imgR, width, height){
+                super(imgL, imgR, width, height);
                 this.vx = 0;
                 this.vy = 0;
                 this.maxSpeed = 5;
                 this.speed = 1;
+                this.exp = 0;
                 this.level = 0;
             }
 
@@ -57,11 +61,20 @@
             }
 
             downSpeed(){
-                if(this.vx > 0)  this.vx -= 1;
-                else if(this.vx < 0)  this.vx += 1;
+                var inertiaX;
+                var inertiaY; 
 
-                if(this.vy > 0)  this.vy -= 1;
-                else if(this.vy < 0)  this.vy += 1;
+                if(this.vx > this.maxSpeed/2) var inertiaX =  this.vx / 4;
+                else var inertiaX =  this.speed / 5;
+                if(this.vy > this.maxSpeed/2) var inertiaY =  this.vy / 4;
+                else var inertiaY =  this.speed / 5;
+
+                if(this.vx > inertiaX)  this.vx -= inertiaX;
+                else if(this.vx < -inertiaX)  this.vx += inertiaX;
+
+                if(this.vy > inertiaY)  this.vy -= inertiaY;
+                else if(this.vy < -inertiaY)  this.vy += inertiaY;
+                else this.vy = 0;
             }
 
             moveXY(vx, vy){
@@ -75,24 +88,14 @@
                 else if(this.vy < -this.maxSpeed)  this.vy = -this.maxSpeed;
             }
 
-            setMaxSpeed(maxSpeed){
-                this.maxSpeed = maxSpeed;
-            }
+            drawObj() { 
+                // bufferCtx.fillRect(this.x - this.width / 2, this.y - this.height* 2 / 2, this.width,  this.height);
 
-            setSpeed(speed){
-                this.speed = speed;
-            }
-
-            getVX(){
-                return this.vx;
-            }
-
-            getVY(){
-                return this.vy;
-            }
-
-            setLevel(level){
-                this.level = level;
+                if(this.vx > 0)
+                    bufferCtx.drawImage(this.imgL, this.x - this.width / 2 , this.y - this.height / 2 , this.width,  this.height);   
+                else
+                    bufferCtx.drawImage(this.imgR, this.x - this.width / 2 , this.y - this.height / 2 , this.width,  this.height);   
+               
             }
         }
         //배경이미지
@@ -100,23 +103,23 @@
 
         //잠수함
         var submarine = new lifeObj(
-            "image/player.png", 60, 30
+            "image/player.png", "image/player_reverse.png", 60, 30
         );
-        submarine.setMaxSpeed(10);
-        submarine.setSpeed(2);
-        submarine.setLevel(0);
-
+        submarine.maxSpeed = 20;
+        submarine.speed = 2;
+        submarine.level = 0;
         //장애물
         var enemyCount = 10;
         const enemyFool = new Set();
         const enemyType = [
-            { img:"image/fish_1.png", w: 60, h: 30, lv: 100, nLv: 0, ms: 20},
-            { img:"image/fish_2.png", w: 80, h: 40, lv: 1, nLv: 1, ms: 15},
-            { img:"image/fish_3.png", w: 120, h: 60, lv: 2, nLv: 2, ms: 15},
-            { img:"image/fish_4.png", w: 180, h: 90, lv: 2, nLv: 3, ms: 10},
-            { img:"image/fish_5.png", w: 300, h: 150, lv: 3, nLv: 4, ms: 10},
-            { img:"image/fish_6.png", w: 540, h: 270, lv: 10, nLv: 5, ms: 5}];
-        var ellapse = 10;
+            { imgL:"image/fish_1.png", imgR:"image/fish_1_reverse.png", w: 60, h: 30, exp: 1, lv: 1, ms: 20},
+            { imgL:"image/fish_2.png", imgR:"image/fish_2_reverse.png", w: 80, h: 40, exp: 1, lv: 2, ms: 15},
+            { imgL:"image/fish_3.png", imgR:"image/fish_3_reverse.png", w: 120, h: 60, exp: 1, lv: 3, ms: 10},
+            { imgL:"image/fish_4.png", imgR:"image/fish_4_reverse.png", w: 180, h: 90, exp: 2, lv: 4, ms: 10},
+            { imgL:"image/fish_5.png", imgR:"image/fish_5_reverse.png", w: 300, h: 150, exp: 2, lv: 5, ms: 7},
+            { imgL:"image/fish_6.png", imgR:"image/fish_6_reverse.png", w: 540, h: 270, exp: 3, lv: 6, ms: 5},
+            { imgL:"image/fish_7.png", imgR:"image/fish_7_reverse.png", w: 1500, h: 1000, exp: 9999, lv: 7, ms: 2}];
+        var enemyBoss = false;
 
         //타이머 인스턴스
         var loopInstance;
@@ -133,6 +136,10 @@
         var startTime;
         var totalTime;
 
+        //점수
+        var score = 0;
+        var scoreExp = 0;
+
         window.addEventListener("load", initialize, false);
         window.addEventListener("keydown", getKeyDown, false);
         window.addEventListener("keyup", getKeyUp, false);
@@ -146,8 +153,6 @@
             canvasBuffer.height = canvas.height;
             bufferCtx = canvasBuffer.getContext("2d");
 
-            //이미지 설정
-            setImage();
             //게임 시작 메시지
             startMessage();
             //타이머 동작
@@ -182,7 +187,7 @@
 
             if(STATE_START){
                 //장애물의 이동
-                moveObstacle(ellapse);
+                moveObstacle();
                 //캔버스 초기화
                 clearAll();
                 //캔버스에 그리기
@@ -192,10 +197,21 @@
 
         function movePlayer(){ 
 
-            if (keyPressed[38]) submarine.moveXY(0, -submarine.speed);
-            if (keyPressed[40]) submarine.moveXY(0, submarine.speed);
-            if (keyPressed[37]) submarine.moveXY(-submarine.speed, 0);
-            if (keyPressed[39]) submarine.moveXY(submarine.speed, 0);
+            if (keyPressed[37]) submarine.moveXY(-submarine.speed, 0);  // 37: 왼쪽
+            if (keyPressed[38]) submarine.moveXY(0, -submarine.speed);  // 38: 위쪽
+            if (keyPressed[39]) submarine.moveXY(submarine.speed, 0);   // 39: 오른쪽
+            if (keyPressed[40]) submarine.moveXY(0, submarine.speed);   // 40: 아래쪽
+
+            
+            // if (keyPressed[37] && keyPressed[38]) submarine.moveXY(-submarine.speed/2, -submarine.speed/2);
+            // if (keyPressed[38] && keyPressed[39]) submarine.moveXY(submarine.speed/2, -submarine.speed/2);
+            // if (keyPressed[39] && keyPressed[40]) submarine.moveXY(submarine.speed/2, submarine.speed/2);
+            // if (keyPressed[40] && keyPressed[37]) submarine.moveXY(-submarine.speed/2, submarine.speed/2);
+
+            if (keyPressed[37] && keyPressed[38]) submarine.moveXY(-submarine.speed/3, submarine.speed/3);
+            if (keyPressed[38] && keyPressed[39]) submarine.moveXY(submarine.speed/3, submarine.speed/3);
+            if (keyPressed[39] && keyPressed[40]) submarine.moveXY(submarine.speed/3, -submarine.speed/3);
+            if (keyPressed[40] && keyPressed[37]) submarine.moveXY(-submarine.speed/3, -submarine.speed/3);
 
             // 플레이어 감속
             submarine.downSpeed();
@@ -213,7 +229,6 @@
             if(submarine.x < 0) submarine.x = 0;
             if(my < submarine.y) submarine.y = my;
             if(submarine.y < 0) submarine.y = 0;
-            
         }
 
         function clearAll(){
@@ -221,42 +236,47 @@
             canvas.width = canvas.width;
         }
 
-        function moveObstacle(ellapse) {
+        function moveObstacle() {
             //장애물의 이동
             enemyFool.forEach(function (enemy) {
                 // 장애물 위치 업데이트
                 enemy.uqdateXY();
-                // 장애물 사망
-                deleteObstacle(enemy);
+                // 장애물 벽 사망
+                deleteMap(enemy);
                 // 장애물 생성
                 createObstacle();
                 //충돌 검사
                 crashObstacle(enemy);
             });
         }
-        function deleteObstacle(enemy){
+        function deleteMap(enemy){
             if ((enemy.x > canvas.width + enemy.width) || (enemy.x < -enemy.width)
             || (enemy.y > canvas.height + enemy.height) || (enemy.y < -enemy.height)) {
-                enemyFool.delete(enemy);
+                deleteObstacle(enemy);
             }
         }
-        
+        // 플레이어와 충돌
         function crashObstacle(enemy) {
-            var mx = enemy.x;
-            var my = enemy.y;
+            var ex = enemy.x - enemy.width / 2 ;
+            var ey = enemy.y - enemy.height / 2;
+            var sx = submarine.x - submarine.width / 2;
+            var sy = submarine.y - submarine.height / 2;
 
-            if (mx > submarine.x  - submarine.width / 2 
-            && mx < submarine.x + submarine.width / 2
-            && my > submarine.y - submarine.height / 2 
-            && my < submarine.y + submarine.height / 2) {
-                if(submarine.height >= enemy.height - 5){ // 먹었을 때
+            if (sx+2 <= ex + enemy.width && sx-2 + submarine.width >= ex 
+            && sy+2 <= ey + enemy.height && sy-2 + submarine.height >= ey){
 
-                    var sizeUp = enemyType[enemy.level];
-                    submarine.width += sizeUp.lv * 2;
-                    submarine.height += sizeUp.lv;
-
-                    if(submarine.level < enemy.level-1){
-                        submarine.level =  enemy.level-1;
+                if(submarine.height >= enemy.height - 2){ // 먹었을 때
+                    score += 50 * enemy.level;
+                    submarine.width += enemy.exp * 2;
+                    submarine.height += enemy.exp;
+                    
+                    if(submarine.level < enemy.level){
+                        submarine.level =  enemy.level;
+                        if(submarine.speed <= submarine.maxSpeed){
+                            submarine.speed += 0.2;
+                            submarine.maxSpeed -= 2;
+                            submarine.maxSpeed = submarine.speed*10;
+                        }
                     }
 
                     enemyFool.delete(enemy);
@@ -267,7 +287,10 @@
             }
         }
 
-
+        function deleteObstacle(enemy){
+            enemyFool.delete(enemy);
+            if(enemyBoss && enemy.level == enemyType.length - 1) enemyBoss = false;
+        }
 
         function startGame() {
             //게임 시작 상태
@@ -287,23 +310,27 @@
         // 장애물 생성
         function createObstacle() {
             var diff = enemyCount - enemyFool.size + (5 * submarine.level);
-            
+            // diff = 0;
             for (var i = 0; i < diff; i++) {
                 var isLR;
                 if(Math.floor(Math.random() * 2) == 0) isLR = true;
                 else isLR = false;
 
-                var type = Math.floor(Math.random() * (4 + submarine.level) + submarine.level - 1);
-                if(enemyType.length < type) type = enemyType.length-1;
+                var type = Math.floor(Math.random() * (3 + submarine.level) + submarine.level - 1);
+                if(enemyType.length <= type) type = enemyType.length-1;
                 if(0 > type) type = 0;
-                var enemyTmp = new lifeObj(enemyType[type].img, enemyType[type].w, enemyType[type].h);
+                if(enemyBoss && type == enemyType.length-1) type--;
+                if(!enemyBoss && type == enemyType.length-1) enemyBoss = true;
 
-                enemyTmp.setLevel(enemyType[type].nLv);
+                var enemyTmp = new lifeObj(enemyType[type].imgL, enemyType[type].imgR, enemyType[type].w, enemyType[type].h);
+                
                 enemyTmp.x = (isLR ? -enemyTmp.width : canvas.width + enemyTmp.width);
                 enemyTmp.y = Math.random() * canvas.height;
-                enemyTmp.setMaxSpeed(enemyType[type].ms);
-                enemyTmp.setSpeed(Math.random() * 10 + 1);
-                enemyTmp.moveXY((isLR ? enemyTmp.speed : -enemyTmp.speed), Math.random() * 3 - 1)
+                enemyTmp.maxSpeed = enemyType[type].ms;
+                enemyTmp.speed = Math.random() * 10 + 1;
+                enemyTmp.level = enemyType[type].lv;
+                enemyTmp.exp = enemyType[type].exp;
+                enemyTmp.moveXY((isLR ? enemyTmp.speed : -enemyTmp.speed), Math.random() * 3 - 1);
                 enemyTmp.drawObj();
                 
                 enemyFool.add(enemyTmp);
@@ -312,10 +339,6 @@
 
         function stopGame() {
             STATE_START = false;
-        }
-        function setImage() {
-            background = new Image();
-            background.src = "image/sea.png";
         }
 
         function getKeyDown(event) {
@@ -342,9 +365,7 @@
                 drawText(ctx, "Game Over", canvas.width / 2, canvas.height / 2 - 60, "bold 30px arial", "#ffff00", "center", "top");
                 drawText(ctx, "Spacebar to Restart", canvas.width / 2, canvas.height / 2 - 20, "bold 25px arial", "#ffffff", "center", "top");
             }
-            else {
-                //배경 이미지 출력
-                drawBk();
+            else {     
                 //잠수함 출력
                 submarine.drawObj();
                 //장애물 출력
@@ -353,7 +374,9 @@
                 ctx.drawImage(canvasBuffer, 0, 0);
                 //경과 시간 출력
                 totalTime = (getTime() - startTime);
-                drawText(ctx, totalTime, canvas.width - 10, 10, "20px arial", "yellow", "right", "top");
+                scoreExp++;
+                if(scoreExp%16 == 0) score++;
+                drawText(ctx, score, canvas.width - 10, 10, "20px arial", "yellow", "right", "top");
             }
         }
         //장애물 출력
@@ -361,11 +384,6 @@
             enemyFool.forEach(function(enemy) {
                 enemy.drawObj();
             });
-        }
-
-        //게임 배경 이미지 출력
-        function drawBk() {
-            bufferCtx.drawImage(background, 0, 0);
         }
 
         function a(val){
