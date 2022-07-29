@@ -106,7 +106,7 @@
             "image/player.png", "image/player_reverse.png", 60, 30
         );
         submarine.maxSpeed = 20;
-        submarine.speed = 2;
+        submarine.speed = 1;
         submarine.level = 0;
         //장애물
         var enemyCount = 10;
@@ -271,8 +271,7 @@
                     if(submarine.level < enemy.level){
                         submarine.level =  enemy.level;
                         if(submarine.speed <= submarine.maxSpeed){
-                            submarine.speed += 0.2;
-                            submarine.maxSpeed -= 2;
+                            submarine.speed += 0.1;
                             submarine.maxSpeed = submarine.speed*10;
                         }
                     }
