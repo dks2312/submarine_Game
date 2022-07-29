@@ -103,21 +103,21 @@
 
         //잠수함
         var submarine = new lifeObj(
-            "image/player.png", "image/player_reverse.png", 60, 30
+            "image/player.png", "image/player_reverse.png", 30, 15
         );
         submarine.maxSpeed = 20;
         submarine.speed = 1;
         submarine.level = 0;
         //장애물
-        var enemyCount = 10;
+        var enemyCount = 30;
         const enemyFool = new Set();
         const enemyType = [
-            { imgL:"image/fish_1.png", imgR:"image/fish_1_reverse.png", w: 60, h: 30, exp: 1, lv: 1, ms: 20},
-            { imgL:"image/fish_2.png", imgR:"image/fish_2_reverse.png", w: 80, h: 40, exp: 1, lv: 2, ms: 15},
-            { imgL:"image/fish_3.png", imgR:"image/fish_3_reverse.png", w: 120, h: 60, exp: 1, lv: 3, ms: 10},
-            { imgL:"image/fish_4.png", imgR:"image/fish_4_reverse.png", w: 180, h: 90, exp: 2, lv: 4, ms: 10},
-            { imgL:"image/fish_5.png", imgR:"image/fish_5_reverse.png", w: 300, h: 150, exp: 2, lv: 5, ms: 7},
-            { imgL:"image/fish_6.png", imgR:"image/fish_6_reverse.png", w: 540, h: 270, exp: 3, lv: 6, ms: 5},
+            { imgL:"image/fish_1.png", imgR:"image/fish_1_reverse.png", w: 30, h: 15, exp: 0.3, lv: 1, ms: 20},
+            { imgL:"image/fish_2.png", imgR:"image/fish_2_reverse.png", w: 35, h: 17, exp: 0.5, lv: 2, ms: 15},
+            { imgL:"image/fish_3.png", imgR:"image/fish_3_reverse.png", w: 40, h: 20, exp: 1, lv: 3, ms: 10},
+            { imgL:"image/fish_4.png", imgR:"image/fish_4_reverse.png", w: 100, h: 50, exp: 1.5, lv: 4, ms: 7},
+            { imgL:"image/fish_5.png", imgR:"image/fish_5_reverse.png", w: 300, h: 150, exp: 2, lv: 5, ms: 5},
+            { imgL:"image/fish_6.png", imgR:"image/fish_6_reverse.png", w: 600, h: 300, exp: 3, lv: 6, ms: 4},
             { imgL:"image/fish_7.png", imgR:"image/fish_7_reverse.png", w: 1500, h: 1000, exp: 9999, lv: 7, ms: 2}];
         var enemyBoss = false;
 
@@ -264,7 +264,7 @@
             && sy+2 <= ey + enemy.height && sy-2 + submarine.height >= ey){
 
                 if(submarine.height >= enemy.height - 2){ // 먹었을 때
-                    score += 50 * enemy.level;
+                    score += 100 * (enemy.level*2);
                     submarine.width += enemy.exp * 2;
                     submarine.height += enemy.exp;
                     
@@ -286,7 +286,7 @@
 
         function deleteObstacle(enemy){
             enemyFool.delete(enemy);
-            if(enemyBoss && enemy.level == enemyType.length - 1) enemyBoss = false;
+            if(enemyBoss && enemy.level == enemyType.length) enemyBoss = false;
         }
 
         function startGame() {
@@ -305,7 +305,7 @@
 
         // 장애물 생성
         function createObstacle() {
-            var diff = enemyCount - enemyFool.size + (5 * submarine.level);
+            var diff = enemyCount - enemyFool.size - (2 * submarine.level);
             var timeOut = Math.floor(totalTime/1000/20);
             if(submarine.level < timeOut) submarine.level = timeOut;
 
@@ -315,10 +315,11 @@
                 if(Math.floor(Math.random() * 2) == 0) isLR = true;
                 else isLR = false;
 
-                var type = Math.floor(Math.random() * (3 + submarine.level) + submarine.level - 2);
+                var type = Math.floor(Math.random() * (3 + submarine.level) - 2);
+                console.log("enemyBoss:"+enemyBoss);
                 if(enemyType.length <= type) type = enemyType.length-1;
                 if(0 > type) type = 0;
-                if(enemyBoss && type == enemyType.length-1) type--;
+                if(enemyBoss && type >= enemyType.length-1) type--;
                 if(!enemyBoss && type == enemyType.length-1) enemyBoss = true;
 
                 var enemyTmp = new lifeObj(enemyType[type].imgL, enemyType[type].imgR, enemyType[type].w, enemyType[type].h);
