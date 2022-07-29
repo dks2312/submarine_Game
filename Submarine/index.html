@@ -64,9 +64,9 @@
                 var inertiaX;
                 var inertiaY; 
 
-                if(this.vx > this.maxSpeed/2) var inertiaX =  this.vx / 4;
+                if(this.vx > this.maxSpeed/2) var inertiaX =  this.speed / 2;
                 else var inertiaX =  this.speed / 5;
-                if(this.vy > this.maxSpeed/2) var inertiaY =  this.vy / 4;
+                if(this.vy > this.maxSpeed/2) var inertiaY =  this.speed / 2;
                 else var inertiaY =  this.speed / 5;
 
                 if(this.vx > inertiaX)  this.vx -= inertiaX;
@@ -132,13 +132,11 @@
         var keyPressed = [];
 
         //경과 시간
-        var oldTime;
         var startTime;
         var totalTime;
 
         //점수
         var score = 0;
-        var scoreExp = 0;
 
         window.addEventListener("load", initialize, false);
         window.addEventListener("keydown", getKeyDown, false);
@@ -304,19 +302,21 @@
 
             //현재 시간 저장
             startTime = getTime();
-            oldTime = getTime();
         }
 
         // 장애물 생성
         function createObstacle() {
             var diff = enemyCount - enemyFool.size + (5 * submarine.level);
+            var timeOut = Math.floor(totalTime/1000/20);
+            if(submarine.level < timeOut) submarine.level = timeOut;
+
             // diff = 0;
             for (var i = 0; i < diff; i++) {
                 var isLR;
                 if(Math.floor(Math.random() * 2) == 0) isLR = true;
                 else isLR = false;
 
-                var type = Math.floor(Math.random() * (3 + submarine.level) + submarine.level - 1);
+                var type = Math.floor(Math.random() * (3 + submarine.level) + submarine.level - 2);
                 if(enemyType.length <= type) type = enemyType.length-1;
                 if(0 > type) type = 0;
                 if(enemyBoss && type == enemyType.length-1) type--;
@@ -363,7 +363,9 @@
             else if (STATE_GAMEOVER) {
                 stopGame();
                 drawText(ctx, "Game Over", canvas.width / 2, canvas.height / 2 - 60, "bold 30px arial", "#ffff00", "center", "top");
-                drawText(ctx, "Spacebar to Restart", canvas.width / 2, canvas.height / 2 - 20, "bold 25px arial", "#ffffff", "center", "top");
+                drawText(ctx, "score : "+ score, canvas.width / 2, canvas.height / 2 - 20, "bold 30px arial", "#ffff00", "center", "top");
+                drawText(ctx, "Time : "+ simpleDate2(totalTime), canvas.width / 2, canvas.height / 2 + 10, "bold 30px arial", "#ffff00", "center", "top");
+                drawText(ctx, "Spacebar to Restart", canvas.width / 2, canvas.height / 2 + 50, "bold 25px arial", "#ffffff", "center", "top");
             }
             else {     
                 //잠수함 출력
@@ -374,11 +376,28 @@
                 ctx.drawImage(canvasBuffer, 0, 0);
                 //경과 시간 출력
                 totalTime = (getTime() - startTime);
-                scoreExp++;
-                if(scoreExp%16 == 0) score++;
                 drawText(ctx, score, canvas.width - 10, 10, "20px arial", "yellow", "right", "top");
+                drawText(ctx, simpleDate2(totalTime), canvas.width - 10, 30, "20px arial", "yellow", "right", "top");
             }
         }
+
+        function simpleDate(date){
+            var str = "";
+            str += Math.floor(date/1000/60) +":";
+            str += Math.floor(date/1000%60) +":";
+            str += Math.floor(date%100);
+            return str
+        }
+
+        function simpleDate2(date){
+            var str = "";
+
+            if(Math.floor(date/1000/60) > 0) str += Math.floor(date/1000/60) +"분 ";
+            str += Math.floor(date/1000%60) +"초 ";
+            
+            return str
+        }
+
         //장애물 출력
         function drawObstacle() {
             enemyFool.forEach(function(enemy) {

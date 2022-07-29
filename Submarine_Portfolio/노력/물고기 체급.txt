@@ -1,0 +1,25 @@
+exp : 0
+60 30
+4번 먹으면 승급
+
+exp : 4
+sizeUp : 20
+80 40
+
+exp : 8
+sizeUp : 40
+120 60
+
+exp : 16
+sizeUp : 60
+180 90
+
+exp : 20
+sizeUp : 120
+300 150
+
+exp : 24
+sizeUp : 240
+540 270
+
+
