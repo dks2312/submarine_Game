@@ -118,10 +118,10 @@
         const enemyType = [
             { imgL:"image/fish_1.png", imgR:"image/fish_1_reverse.png", w: 30, h: 15, exp: 0.3, lv: 1, ms: 20},
             { imgL:"image/fish_2.png", imgR:"image/fish_2_reverse.png", w: 35, h: 17, exp: 0.5, lv: 2, ms: 15},
-            { imgL:"image/fish_3.png", imgR:"image/fish_3_reverse.png", w: 40, h: 20, exp: 1, lv: 3, ms: 10},
+            { imgL:"image/fish_3.png", imgR:"image/fish_3_reverse.png", w: 50, h: 25, exp: 1, lv: 3, ms: 10},
             { imgL:"image/fish_4.png", imgR:"image/fish_4_reverse.png", w: 100, h: 50, exp: 1.5, lv: 4, ms: 7},
-            { imgL:"image/fish_5.png", imgR:"image/fish_5_reverse.png", w: 300, h: 150, exp: 2, lv: 5, ms: 5},
-            { imgL:"image/fish_6.png", imgR:"image/fish_6_reverse.png", w: 600, h: 300, exp: 3, lv: 6, ms: 4},
+            { imgL:"image/fish_5.png", imgR:"image/fish_5_reverse.png", w: 250, h: 125, exp: 3, lv: 5, ms: 5},
+            { imgL:"image/fish_6.png", imgR:"image/fish_6_reverse.png", w: 600, h: 300, exp: 5, lv: 6, ms: 4},
             { imgL:"image/fish_7.png", imgR:"image/fish_7_reverse.png", w: 1500, h: 1000, exp: 9999, lv: 7, ms: 2}];
         var enemyBoss = false;
 
@@ -269,7 +269,7 @@
             && sy+2 <= ey + enemy.height && sy-2 + submarine.height >= ey){
 
                 if(submarine.height >= enemy.height - 2){ // 먹었을 때
-                    score += 100 * (enemy.level*2);
+                    score += 10 * (enemy.level*10);
                     submarine.width += enemy.exp * 2;
                     submarine.height += enemy.exp;
                     
